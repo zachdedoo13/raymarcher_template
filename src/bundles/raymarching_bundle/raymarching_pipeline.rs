@@ -24,7 +24,6 @@ impl RaymarchingPipeline {
          push_constant_ranges: &[],
       });
 
-      // compile_shaders();
 
       println!("\n//////////////////////////////////\nNo: {}", refresh_counter);
 
@@ -137,13 +136,13 @@ fn load_spv_shader(setup: &Setup, path: Box<Path>) -> ShaderModule {
 }
 
 fn compile_shader(from: &str, to: &str, stage: &str) {
-   let mut child = Command::new("C:/install/bin/glslc.exe")
+   let mut child = Command::new("src/utility/glslc.exe")
        .arg(format!("-fshader-stage={}", stage))
        .arg(from)
        .arg("-o")
        .arg(to)
        .spawn()
-       .expect("Failed to start glslc command");
+       .expect("idk somethings fucked");
 
    let encode = child.wait()
        .expect("Failed to wait on glslc command");

@@ -57,7 +57,7 @@ impl<'a> Setup<'a> {
           .copied()
           .find(|f| f.is_srgb())
           .unwrap_or(surface_caps.formats[0]);
-      let config = wgpu::SurfaceConfiguration {
+      let config = SurfaceConfiguration {
          usage: wgpu::TextureUsages::RENDER_ATTACHMENT,
          format: surface_format,
          width: size.width,

@@ -39,7 +39,7 @@ impl EguiRenderer {
         let egui_state = State::new(egui_context.clone(), id, &window, None, None);
 
         // egui_state.set_pixels_per_point(window.scale_factor() as f32);
-        let egui_renderer = egui_wgpu::Renderer::new(
+        let egui_renderer = Renderer::new(
             device,
             output_color_format,
             output_depth_format,
