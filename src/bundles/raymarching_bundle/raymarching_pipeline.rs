@@ -20,18 +20,20 @@ impl RaymarchingPipeline {
          label: Some("Render Pipeline Layout"),
          bind_group_layouts: &[
             &raymarching_package.constants.layout,
+            &raymarching_package.settings.layout,
          ],
          push_constant_ranges: &[],
       });
 
 
       println!("\n//////////////////////////////////\nNo: {}", refresh_counter);
+      let base = BasePathThing::new("src/bundles/raymarching_bundle/shaders/");
 
-      compile_shader("src/bundles/raymarching_bundle/shaders/vertex.glsl", "src/bundles/raymarching_bundle/shaders/spv/vertex.spv", "vertex");
-      let vert = load_spv_shader(&setup, Box::from(Path::new("src/bundles/raymarching_bundle/shaders/spv/vertex.spv")));
+      compile_shader(base.plus("vertex.glsl"), base.plus("spv/vertex.spv"), "vertex");
+      let vert = load_spv_shader(&setup, base.plus("spv/vertex.spv"));
 
-      compile_shader("src/bundles/raymarching_bundle/shaders/fragment.glsl", "src/bundles/raymarching_bundle/shaders/spv/fragment.spv", "fragment");
-      let frag = load_spv_shader(&setup, Box::from(Path::new("src/bundles/raymarching_bundle/shaders/spv/fragment.spv")));
+      compile_shader(base.plus("fragment.glsl"), base.plus("spv/fragment.spv"), "fragment");
+      let frag = load_spv_shader(&setup, base.plus("spv/fragment.spv"));
 
 
 
@@ -114,6 +116,7 @@ impl RaymarchingPipeline {
 
       // bind groups
       render_pass.set_bind_group(0, &raymarching_package.constants.bind_group, &[]);
+      render_pass.set_bind_group(1, &raymarching_package.settings.bind_group, &[]);
 
 
       render_pass.set_vertex_buffer(0, self.vertex_package.vertex_buffer.slice(..));
@@ -122,6 +125,7 @@ impl RaymarchingPipeline {
       render_pass.draw_indexed(0..self.vertex_package.num_indices, 0, 0..1);
    }
 }
+
 
 fn load_spv_shader(setup: &Setup, path: Box<Path>) -> ShaderModule {
    let shader_code = fs::read(path).expect("Failed to read shader file");
@@ -135,12 +139,12 @@ fn load_spv_shader(setup: &Setup, path: Box<Path>) -> ShaderModule {
    return setup.device.create_shader_module(dsec);
 }
 
-fn compile_shader(from: &str, to: &str, stage: &str) {
+fn compile_shader(from: Box<Path>, to: Box<Path>, stage: &str) {
    let mut child = Command::new("src/utility/glslc.exe")
        .arg(format!("-fshader-stage={}", stage))
-       .arg(from)
+       .arg(box_path_to_string(from))
        .arg("-o")
-       .arg(to)
+       .arg(box_path_to_string(to))
        .spawn()
        .expect("idk somethings fucked");
 
@@ -153,3 +157,33 @@ fn compile_shader(from: &str, to: &str, stage: &str) {
       eprintln!("Shader {stage} compilation failed.\n");
    }
 }
+
+fn box_path_to_string(path: Box<Path>) -> String {
+   format!("{}", path.display())
+}
+
+
+struct BasePathThing {
+   path: String,
+}
+impl BasePathThing {
+   fn new(path: &str) -> Self {
+      Self { path: path.to_string() }
+   }
+
+   fn plus(&self, add: &str) -> Box<Path> {
+      let concat =  self.path.clone() + &add.to_string();
+      let path = Path::new(&concat);
+
+      return Box::from(path)
+   }
+}
+
+
+
+
+
+
+
+
+

@@ -1,3 +1,4 @@
+use egui::Ui;
 use wgpu::{CommandEncoder, TextureView};
 use winit::keyboard::KeyCode;
 use crate::bundles::raymarching_bundle::raymarching_package::RaymarchingPackage;
@@ -29,6 +30,11 @@ impl RaymarchingBundle {
          self.refresh_counter += 1;
          self.pipeline = RaymarchingPipeline::new(setup, &self.package, self.refresh_counter);
       }
+   }
+
+   pub fn gui(&mut self, ui: &mut Ui) {
+      self.package.gui(ui);
+
    }
 
    pub fn render_pass(&self, encoder: &mut CommandEncoder, view: &TextureView) {

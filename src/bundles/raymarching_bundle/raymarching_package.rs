@@ -1,19 +1,29 @@
+use egui::{Ui};
 use wgpu::ShaderStages;
+use crate::{defaults_and_sliders_gui, defaults_only_gui};
 use crate::inbuilt::setup::Setup;
 use crate::packages::time_package::TimePackage;
 use crate::utility::structs::UniformPackageSingles;
 
 pub struct RaymarchingPackage {
    pub constants: UniformPackageSingles<Constants>,
+   pub settings: UniformPackageSingles<Settings>,
 }
 impl RaymarchingPackage {
    pub fn new(setup: &Setup) -> Self {
 
       let constants = UniformPackageSingles::<Constants>::create(setup, ShaderStages::FRAGMENT, Constants::default());
+      let settings = UniformPackageSingles::<Settings>::create(setup, ShaderStages::FRAGMENT, Settings::default());
 
       Self {
          constants,
+         settings,
       }
+   }
+
+   pub fn gui(&mut self, ui: &mut Ui) {
+      self.constants.data.ui(ui);
+      self.settings.data.ui(ui);
    }
 
    pub fn update(&mut self, setup: &Setup, time_package: &TimePackage) {
@@ -23,20 +33,18 @@ impl RaymarchingPackage {
       data.aspect = setup.size.width as f32 / setup.size.height as f32;
 
       self.constants.update_with_data(&setup.queue);
+      self.settings.update_with_data(&setup.queue);
    }
 }
 
-#[repr(C)]
-#[derive(Copy, Clone, Debug, bytemuck::Pod, bytemuck::Zeroable)]
-pub struct Constants {
-   pub aspect: f32,
-   pub time: f32,
-}
-impl Default for Constants {
-   fn default() -> Self {
-      Self {
-         aspect: 0.0,
-         time: 0.0,
-      }
-   }
-}
+defaults_only_gui!(
+   Constants,
+   aspect: f32 = 0.0,
+   time: f32 = 0.0
+);
+
+defaults_and_sliders_gui!(
+   Settings,
+   main_steps: i32 = 80 => 0..=300,
+   farplane: f32 = 100.0 => 0.0..=500.0
+);

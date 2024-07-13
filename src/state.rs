@@ -93,7 +93,7 @@ impl<'a> State<'a> {
             }
 
             // add other ui hear
-
+            self.raymarching_bundle.gui(ui);
 
          };
 
