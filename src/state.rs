@@ -88,6 +88,13 @@ impl<'a> State<'a> {
                    .default_open(true)
                    .show(ui, |ui| {
                       ui.add(egui::Label::new(format!("FPS: {}", &self.time_package.fps)));
+                      ui.add(egui::Label::new(
+                         format!("Screen: {} x {} = {}",
+                                 &self.setup.size.width
+                                 ,&self.setup.size.height,
+                                 &self.setup.size.width * &self.setup.size.height
+                         )
+                      ));
                       ui.end_row();
                    });
             }

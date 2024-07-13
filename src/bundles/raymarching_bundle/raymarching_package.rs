@@ -46,5 +46,15 @@ defaults_only_gui!(
 defaults_and_sliders_gui!(
    Settings,
    main_steps: i32 = 80 => 0..=300,
-   farplane: f32 = 100.0 => 0.0..=500.0
+   farplane: f32 = 100.0 => 0.0..=500.0,
+   dis: f32 = 0.0 => 0.0..=100.0,
+   light_x: f32 = 0.0 => -10.0..=10.0,
+   light_y: f32 = 0.0 => -10.0..=10.0,
+   light_z: f32 = 0.0 => -10.0..=10.0,
+
+   diffuse: f32 = 0.5 => 0.0..=2.0,
+   speculer: f32 = 0.35 => 0.0..=2.0,
+   shadows: f32 = 0.2 => 0.0..=1.0,
+   soft_shadows: f32 = 0.2 => 0.0..=1.0,
+   soft_shadows_const_steps: i32 = 80 => 0..=300
 );
