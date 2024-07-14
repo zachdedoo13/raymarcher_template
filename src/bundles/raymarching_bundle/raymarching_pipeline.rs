@@ -158,6 +158,27 @@ fn compile_shader(from: Box<Path>, to: Box<Path>, stage: &str) {
    }
 }
 
+#[allow(dead_code)]
+fn preprocess_shader_glsl_to_glsl(from: Box<Path>, to: Box<Path>, stage: &str) {
+   let mut child = Command::new("src/utility/glslc.exe")
+       .arg(format!("-fshader-stage={}", stage))
+       .arg(box_path_to_string(from))
+       .arg("-o")
+       .arg(box_path_to_string(to))
+       .arg("-E")
+       .spawn()
+       .expect("idk somethings fucked");
+
+   let encode = child.wait()
+       .expect("Failed to wait on glslc command");
+
+   if encode.success() {
+      println!("Shader {stage} preprocess successfully.\n");
+   } else {
+      eprintln!("Shader {stage} preprocess failed.\n");
+   }
+}
+
 fn box_path_to_string(path: Box<Path>) -> String {
    format!("{}", path.display())
 }

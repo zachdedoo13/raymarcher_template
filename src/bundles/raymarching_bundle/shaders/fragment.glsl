@@ -26,7 +26,7 @@ layout(set = 1, binding = 0) uniform Settings {
 } s;
 
 struct Ray {vec3 ro; vec3 rd; };
-struct Prog {int steps; float dist; };
+struct Prog {int steps; float dist;};
 struct March {float depth; vec3 color; };
 
 
@@ -40,90 +40,75 @@ struct March {float depth; vec3 color; };
 Prog cast_ray(const Ray ray, const int steps) {
     float t = 0.0;
     int i;
+    mat2x4 the_cast_ray;
 
     // Raymarching
     for (i = 0; i < steps; i++) {
         vec3 p = calc_point(ray, t);
 
-        float d = dist(map(p, false));         // current distance to the scene
+        Obj the_cast_ray = map(p);
+        float d = the_cast_ray.dist;   // current distance to the scene
 
         t += d;                   // "march" the ray
 
-        if (d < .001) GetTheFuckOut;      // early stop if close enough
+        if (d < .001) break;      // early stop if close enough
         if (t > s.farplane) return Prog(i, -1.);      // early stop if too far
     }
 
-    return Prog(i, t);
+    return Prog(i, t); // defult to reguler type
 }
 
+struct Reflect { float rel; vec3 f_col; Prog march; Ray ray; };
 
-vec3 lighting(C Ray ray, C vec3 pos) {
-    // object values
-    vec3 color = color(map(pos, true));
-    vec3 normal = getNormal(pos);
+Reflect calc_reflection(C vec3 point, C vec3 normal, C Ray o_ray, C float rel) {
+    Ray reflect_ray = Ray(point + normal*0.03, reflect(o_ray.rd, normal));
+    Prog reflect_pass = cast_ray( reflect_ray, 80 );
 
-
-    // diffuse lighting
-    vec3 light_col = vec3(1.0, 1.0, 1.0);
-    vec3 light_pos = vec3(s.light_x, s.light_y, s.light_z);
-    float diffuse_strength = max(
-        0.0,
-        dot(normalize(light_pos), normal)
-    );
-    vec3 diffuse = light_col + diffuse_strength;
-
-    // speculer lighting
-    vec3 view_source = normalize(ray.ro);
-    vec3 reflect_source = normalize(reflect(-light_pos, normal));
-    float speculer_strength = max(0.0, dot(view_source, reflect_source));
-    speculer_strength = pow(speculer_strength, 64.0);
-    vec3 speculer = speculer_strength * light_col;
-
-
-    // shadows
-    vec3 light_dir = normalize(light_pos);
-    float dist_to_source = length(light_pos - pos);
-    Ray shadow_ray;
-    shadow_ray.ro = pos + normal * 0.05;
-    shadow_ray.rd = light_dir;
-    Prog shadow_out = cast_ray(shadow_ray, 80);
-
-    vec3 shadows = vec3(1.0);
-    if (shadow_out.dist < dist_to_source && shadow_out.dist > 0.0) {
-        shadows = vec3(s.shadows);
-    } else { // soft shadows
-        float shadow_val = float(shadow_out.steps) / float(s.soft_shadows_const_steps);
-
-        float smooth_shadow = smoothstep(0.0, s.soft_shadows, shadow_val);
-
-        shadows = vec3(s.shadows * (1.0 / smooth_shadow));
+    if (reflect_pass.dist == -1) { // skybox exseption
+        vec3 col = skybox(reflect_ray) * rel;
+        return Reflect(-1.0, col, reflect_pass, Ray(vec3(0.0), vec3(0.0)));
     }
 
+    vec3 reflect_point = calc_point(reflect_ray, reflect_pass.dist);
+    Obj reflect = map(reflect_point);
 
-    // compileing
-    vec3 lighting = diffuse * s.diffuse + speculer * s.speculer;
-    lighting *= shadows;
-
-    vec3 final_color = color * lighting;
-
-
-    return final_color;
+    vec3 reflect_col = (reflect.col * reflect_pass.dist * s.soft_shadows) * rel;
+    return Reflect(reflect.rel, reflect_col, reflect_pass, reflect_ray);
 }
+
 
 vec3 calc_color(C Prog p, C Ray ray) {
     vec3 col;
-    if (p.dist == -1.) {
+    if (p.dist == -1.)  // skybox
+    {
         col = skybox(ray);
     }
-    else if (p.dist == -2.) {
 
-    }
-    else {
-        // lighting and color
-        vec3 pos = calc_point(ray, p.dist);
+    else
+    {
+        vec3 point = calc_point(ray, p.dist);
+        vec3 normal = calc_normal(point);
 
-        col = lighting(ray, pos);
+        Obj hit = map(point);
+        vec3 o_col = hit.col * p.dist * s.soft_shadows;
+
+        vec3 reflections_color;
+
+        Reflect reflect = calc_reflection(point, normal, ray, hit.rel);
+        reflections_color += reflect.f_col;
+
+        for (int i = 0; i < 5; i++){
+            if (reflect.rel != -1) {
+                point = calc_point(reflect.ray, reflect.march.dist);
+                normal = calc_normal(point);
+                reflect = calc_reflection(point, normal, reflect.ray, reflect.rel);
+                reflections_color += reflect.f_col;
+            }
+        }
+
+        col = vec3(o_col + reflections_color * hit.rel);
     }
+
     return col;
 }
 
