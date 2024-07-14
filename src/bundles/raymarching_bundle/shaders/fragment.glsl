@@ -11,6 +11,7 @@ layout(set = 0, binding = 0) uniform Constants {
 
 layout(set = 1, binding = 0) uniform Settings {
     int main_steps;
+    int reflect_steps;
     float farplane;
     float dis;
 
@@ -57,7 +58,12 @@ Prog cast_ray(const Ray ray, const int steps) {
     return Prog(i, t); // defult to reguler type
 }
 
-#define MAX_BOUNCES 16
+vec3 get_color(C Obj ob, C Ray ray, C Prog p) {
+//    return ob.col * p.dist * s.speculer;
+    return ob.col;
+}
+
+#define MAX_BOUNCES 32
 vec3 reflection_ray(C Ray start_ray, C vec3 start_point, C float start_rel, C int steps) {
     vec3 normal = calc_normal(start_point);
     Ray ray = Ray(start_point + normal*0.03, reflect(start_ray.rd, normal));
@@ -71,7 +77,9 @@ vec3 reflection_ray(C Ray start_ray, C vec3 start_point, C float start_rel, C in
     float[MAX_BOUNCES] rels;
 
     int i;
+    int sub_i = 0;
     for (i = 0; i < steps; i++) {
+        sub_i++;
         vec3 p = calc_point(ray, t);
 
         Obj the_cast_ray = map(p);
@@ -80,7 +88,8 @@ vec3 reflection_ray(C Ray start_ray, C vec3 start_point, C float start_rel, C in
         t += d;
 
         if (d < 0.001) {
-            vec3 hit_col = the_cast_ray.col;
+            vec3 hit_col = get_color(the_cast_ray, ray, Prog(sub_i, t));
+            sub_i = 0;
 
             colors[bounces] = hit_col;
             rels[bounces] = pre_rel;
@@ -91,6 +100,7 @@ vec3 reflection_ray(C Ray start_ray, C vec3 start_point, C float start_rel, C in
             ray = Ray(p + normal*0.03, reflect(ray.rd, normal));
 
             bounces += 1;
+            t = 0.0;
             if (bounces >= MAX_BOUNCES) break;
         }
 
@@ -109,31 +119,6 @@ vec3 reflection_ray(C Ray start_ray, C vec3 start_point, C float start_rel, C in
 }
 
 
-vec3 get_color(C vec3 point) {
-    return map(point).col;
-}
-
-struct Reflect { float rel; vec3 f_col; Prog march; Ray ray; };
-
-vec3 calc_reflection(C vec3 point, C vec3 normal, C Ray o_ray, C float rel) {
-    Ray reflect_ray = Ray(point + normal*0.03, reflect(o_ray.rd, normal));
-    Prog reflect_pass = cast_ray( reflect_ray, 8000 );
-
-    if (reflect_pass.dist == -1) { // skybox exseption
-        vec3 col = skybox(reflect_ray) * rel;
-        return col;
-    }
-
-    vec3 reflect_point = calc_point(reflect_ray, reflect_pass.dist);
-    Obj reflect = map(reflect_point);
-
-    vec3 reflect_col = (reflect.col * reflect_pass.dist * s.soft_shadows) * rel;
-    return reflect_col;
-}
-
-
-
-
 vec3 calc_color(C Prog p, C Ray ray) {
     vec3 col;
     if (p.dist == -1.)  // skybox
@@ -147,11 +132,9 @@ vec3 calc_color(C Prog p, C Ray ray) {
         vec3 normal = calc_normal(point);
 
         Obj hit = map(point);
-        vec3 o_col = hit.col;
+        vec3 o_col = get_color(hit, ray, p);
 
-//        vec3 reflections_color = calc_reflection(point, normal, ray, hit.rel);
-
-        vec3 reflections_color = reflection_ray(ray, point, hit.rel, 240);
+        vec3 reflections_color = reflection_ray(ray, point, hit.rel, s.reflect_steps);
 
         col = vec3(o_col + reflections_color);
     }
@@ -165,7 +148,7 @@ void main() {
     // Initialization
     vec3 pos = vec3(0, 1, -8);
     vec3 dir = normalize(vec3(uv, 1));
-    dir.yz *= rot2D(0.0); // rotate down
+    dir.yz *= rot2D(0.1); // rotate down
     Ray ray = Ray(pos, dir);
 
     // first pass

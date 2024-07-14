@@ -46,6 +46,9 @@ defaults_only_gui!(
 defaults_and_sliders_gui!(
    Settings,
    main_steps: i32 = 80 => 0..=300,
+   reflect_steps: i32 = 80 => 0..=300,
+
+
    farplane: f32 = 100.0 => 0.0..=500.0,
    dis: f32 = 0.0 => 0.0..=100.0,
    light_x: f32 = 0.0 => -10.0..=10.0,

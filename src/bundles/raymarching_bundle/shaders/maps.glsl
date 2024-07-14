@@ -8,10 +8,19 @@ struct Obj {
     float rel;
 };
 
-#define NUM 5
-Obj map(const vec3 pos) {
+vec3 repeat(vec3 pos, vec3 repeatInterval) {
+    return mod(pos + repeatInterval * 0.5, repeatInterval) - repeatInterval * 0.5;
+}
+
+#define NUM 4
+Obj map(const vec3 cam_pos) {
+    vec3 pos = cam_pos;
     vec3 tr;
     Obj objects[NUM]; // Array to hold objects for simplified processing
+
+    // globel transforms
+    pos = pos;
+
 
     // Test sphere 1
     tr = move(pos, vec3(1.0, sin(c.time), 1.0));
@@ -22,11 +31,11 @@ Obj map(const vec3 pos) {
     );
 
     // Test sphere 2
-    tr = move(pos, vec3(0.0, 1.5 - s.diffuse, -5.0));
+    tr = move(pos, vec3(sin(c.time), 1.5 - s.diffuse, -5.0));
     objects[1] = Obj(
-        sdRoundBox(tr, vec3(0.2), 0.1),
-        vec3(1.0),
-        0.0
+        sdSphere(tr, smoothstep(0.0, 2.0, abs(sin(c.time * 0.5)))),
+        vec3(0.0, 0.0, 0.0),
+        1.0
     );
 
     // Test box 1
@@ -40,19 +49,28 @@ Obj map(const vec3 pos) {
     );
 
     // Test box 2
-    tr = move(pos, vec3(0.0, 0.5, 0.0));
-    objects[3] = Obj(
-        sdRoundBox(tr, vec3(1.0), 0.1),
-        vec3(0.0),
-        1.0
-    );
+//    tr = pos;
+//    tr = move(tr, vec3(0.0, 3.5, 0.0));
+//    objects[3] = Obj(
+//        sdRoundBox(tr, vec3(1.0), 0.1),
+//        vec3(0.5),
+//        0.0
+//    );
 
     // Test box 3
-    tr = move(pos, vec3(0.0, 0.5, -15.0));
-    objects[4] = Obj(
-        sdRoundBox(tr, vec3(1.0), 0.1),
+    tr = pos;
+    tr = move(tr, vec3(0.0, 0.5, -15.0));
+    tr = repeat(tr, vec3(15.0));
+
+    float by = c.time * 0.2;
+    tr.xz *= rot2D(by);
+    tr.zy *= rot2D(by);
+
+    objects[3] = Obj(
+        sdRoundBox(tr, vec3(1.0), 0.0),
         vec3(0.0),
-        1.0
+//        abs(sin(c.time * 0.05))
+        0.6
     );
 
 

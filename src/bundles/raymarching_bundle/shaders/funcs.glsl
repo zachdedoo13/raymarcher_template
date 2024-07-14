@@ -10,7 +10,16 @@ vec3 calc_point(const Ray ray, const float t)
 }
 
 vec3 skybox(const Ray ray) {
-    return vec3(0.30, 0.36, 0.60) - (ray.rd.y * 0.7); // skybox
+    return vec3(0.30, 0.36, 0.60) - (ray.rd.y * 0.6); // skybox
+}
+
+vec3 druggy_skybox(const Ray ray) {
+    return vec3(
+    smoothstep(0.0, 1.0, abs(sin(c.time * 3.5) * 0.2)),
+    smoothstep(0.0, 1.0, abs(sin(c.time * 0.5) * 0.4)),
+    smoothstep(0.0, 1.0, abs(sin(c.time * 1.0) * 0.3))
+    )
+    - (ray.rd.y * smoothstep(0.0, 1.0, abs(sin(c.time * 1.0) * 0.3))); // skybox
 }
 
 
