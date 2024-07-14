@@ -8,7 +8,7 @@ struct Obj {
     float rel;
 };
 
-#define NUM 3
+#define NUM 5
 Obj map(const vec3 pos) {
     vec3 tr;
     Obj objects[NUM]; // Array to hold objects for simplified processing
@@ -17,15 +17,15 @@ Obj map(const vec3 pos) {
     tr = move(pos, vec3(1.0, sin(c.time), 1.0));
     objects[0] = Obj(
         sdSphere(tr, 1.0),
-        vec3(0.0),
-        0.5
+        vec3(0.1),
+        1.0
     );
 
     // Test sphere 2
-    tr = move(pos, vec3(-sin(c.time * 0.2), -3.0, -1.0));
+    tr = move(pos, vec3(0.0, 1.5 - s.diffuse, -5.0));
     objects[1] = Obj(
-        sdSphere(tr, 1.0),
-        vec3(1.0, 0.0, 0.0),
+        sdRoundBox(tr, vec3(0.2), 0.1),
+        vec3(1.0),
         0.0
     );
 
@@ -34,7 +34,23 @@ Obj map(const vec3 pos) {
     tr.xy *= rot2D(sin(c.time) * 0.1);
     tr.xz *= rot2D(0.2);
     objects[2] = Obj(
-        sdRoundBox(tr, vec3(1.0, 2.0, 2.0), 0.0),
+        sdRoundBox(tr, vec3(1.0, 2.0, 2.0), 0.1),
+        vec3(0.3),
+        1.0
+    );
+
+    // Test box 2
+    tr = move(pos, vec3(0.0, 0.5, 0.0));
+    objects[3] = Obj(
+        sdRoundBox(tr, vec3(1.0), 0.1),
+        vec3(0.0),
+        1.0
+    );
+
+    // Test box 3
+    tr = move(pos, vec3(0.0, 0.5, -15.0));
+    objects[4] = Obj(
+        sdRoundBox(tr, vec3(1.0), 0.1),
         vec3(0.0),
         1.0
     );
