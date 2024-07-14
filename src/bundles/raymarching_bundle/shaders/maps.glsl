@@ -32,6 +32,7 @@ Obj map(const vec3 cam_pos) {
 
     // Test sphere 2
     tr = move(pos, vec3(sin(c.time), 1.5 - s.diffuse, -5.0));
+    tr = repeat(tr, vec3(15.0));
     objects[1] = Obj(
         sdSphere(tr, smoothstep(0.0, 2.0, abs(sin(c.time * 0.5)))),
         vec3(0.0, 0.0, 0.0),
@@ -59,7 +60,7 @@ Obj map(const vec3 cam_pos) {
 
     // Test box 3
     tr = pos;
-    tr = move(tr, vec3(0.0, 0.5, -15.0));
+    tr = move(tr, vec3(0.0, 0.5, 0.0));
     tr = repeat(tr, vec3(15.0));
 
     float by = c.time * 0.2;
