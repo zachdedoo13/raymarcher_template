@@ -161,3 +161,23 @@ float opDisplace( C vec3 p, C float dist, C float by )
     float d2 = displacement(p, by);
     return d1+d2;
 }
+
+
+
+// special
+
+float roundDownToX(C float number, C float x) {
+    return floor(number / x) * x;
+}
+
+
+float flat_grid_2d(C vec2 ipos, C float repeat, C float on, C float off) {
+    // Scale position by the inverse of the repeat interval
+    vec2 pos = ipos / repeat;
+
+    if (mod((roundDownToX(pos.x, 1.0) + roundDownToX(pos.y, 1.0)), 2.0) == 0.0) {
+        return off;
+    }
+
+    return on;
+}

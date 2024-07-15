@@ -13,17 +13,16 @@ layout(set = 1, binding = 0) uniform Settings {
     int main_steps;
     int reflect_steps;
     float farplane;
-    float dis;
+    float fov;
 
-    float light_x;
-    float light_y;
-    float light_z;
-
-    float diffuse;
-    float speculer;
-    float shadows;
-    float soft_shadows;
-    int soft_shadows_const_steps;
+    float p;
+    float pp;
+    float ppp;
+    float pppp;
+    float ppppp;
+    float pppppp;
+    float ppppppp;
+    float pppppppp;
 } s;
 
 struct Ray {vec3 ro; vec3 rd; };
@@ -31,7 +30,7 @@ struct Prog {int steps; float dist;};
 struct March {float depth; vec3 color; };
 
 
-#include "shapes.glsl"
+//#include "shapes.glsl"
 #include "maps.glsl"
 #include "funcs.glsl"
 
@@ -63,11 +62,17 @@ vec3 get_color(C Obj ob, C Ray ray, C Prog p) {
     return ob.col;
 }
 
-#define MAX_BOUNCES 32
+#define MAX_BOUNCES 8
 vec3 reflection_ray(C Ray start_ray, C vec3 start_point, C float start_rel, C int steps) {
     vec3 normal = calc_normal(start_point);
     Ray ray = Ray(start_point + normal*0.03, reflect(start_ray.rd, normal));
     vec3 out_color = vec3(0.0);
+
+    float fresnel = pow(1.0 + dot(start_ray.rd, normal), 1.0);
+
+    if (start_rel == 0.0) {
+        return out_color;
+    }
 
     float pre_rel = start_rel;
     int bounces = 0;
@@ -96,6 +101,8 @@ vec3 reflection_ray(C Ray start_ray, C vec3 start_point, C float start_rel, C in
 
             pre_rel = the_cast_ray.rel;
 
+            if (pre_rel == 0.0) break;
+
             normal = calc_normal(p);
             ray = Ray(p + normal*0.03, reflect(ray.rd, normal));
 
@@ -115,7 +122,7 @@ vec3 reflection_ray(C Ray start_ray, C vec3 start_point, C float start_rel, C in
         out_color = (out_color + colors[j]) * rels[j];
     }
 
-    return out_color;
+    return out_color * fresnel;
 }
 
 
@@ -142,22 +149,26 @@ vec3 calc_color(C Prog p, C Ray ray) {
     return col;
 }
 
+vec3 main_loop(C Ray ray) {
+    vec3 col = vec3(0.0);
+
+    Prog first_pass = cast_ray(ray, s.main_steps); // first pass depth only
+    col = calc_color(first_pass, ray);
+
+    return col;
+}
+
+
 void main() {
     vec2 uv = calc_uv();
 
     // Initialization
     vec3 pos = vec3(0, 1, -8);
-    vec3 dir = normalize(vec3(uv, 1));
+    vec3 dir = normalize(vec3(uv, s.fov));
     dir.yz *= rot2D(0.1); // rotate down
     Ray ray = Ray(pos, dir);
 
-    // first pass
-    Prog first_pass = cast_ray(ray, s.main_steps); // first pass depth only
-
-    // Coloring
-    vec3 col = calc_color(first_pass, ray);
-
-    // dislay lights
+    vec3 col = main_loop(ray);
 
 
     fragColor = vec4(col, 1.0);
