@@ -1,13 +1,14 @@
 use winit::event::{ElementState, Event, KeyEvent, WindowEvent};
 use winit::event_loop::EventLoop;
 use winit::keyboard::{KeyCode, PhysicalKey};
-use winit::window::WindowBuilder;
+use winit::window::{Fullscreen, WindowBuilder};
 use crate::state::State;
 
 pub async fn run() {
    env_logger::init();
    let event_loop = EventLoop::new().unwrap();
-   let window = WindowBuilder::new().build(&event_loop).unwrap();
+   let window = WindowBuilder::new()
+       .build(&event_loop).unwrap();
 
    let mut state = State::new(&window).await;
    let mut surface_configured = false;

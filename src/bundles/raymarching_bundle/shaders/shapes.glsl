@@ -86,6 +86,29 @@ float floatOpUnion( C float d1, C float d2, C float v1, C float v2 )
 
 
 
+float opSmoothUnion( C float d1, C float d2, C float k )
+{
+    float h = clamp( 0.5 + 0.5*(d2-d1)/k, 0.0, 1.0 );
+    return mix( d2, d1, h ) - k*h*(1.0-h);
+}
+
+vec3 vecSmoothUnion( C float d1, C float d2, C vec3 v1, C vec3 v2, C float k) {
+    float h = clamp(0.5 + 0.5*(d1 - d2)/k, 0., 1.);
+    vec3 c = mix(v1, v2, h);
+//    float d = mix(d1, d2, h) - k * h * (1. - h);
+
+    return c;
+}
+float floatSmoothUnion( C float d1, C float d2, C float v1, C float v2, C float k) {
+    float h = clamp(0.5 + 0.5*(d1 - d2)/k, 0., 1.);
+    float fv = mix(v1, v2, h);
+    //    float d = mix(d1, d2, h) - k * h * (1. - h);
+
+    return fv;
+}
+
+
+
 
 float opSubtraction( C float d1, C float d2 )
 {

@@ -45,20 +45,12 @@ Obj map(const vec3 cam_pos) {
     tr.xz *= rot2D(0.2);
     objects[2] = Obj(
         sdRoundBox(tr, vec3(1.0, 2.0, 2.0), 0.1),
-        vec3(0.3),
-        1.0
+        vec3(0.0, 0.0, 0.0),
+        0.000
     );
 
-    // Test box 2
-//    tr = pos;
-//    tr = move(tr, vec3(0.0, 3.5, 0.0));
-//    objects[3] = Obj(
-//        sdRoundBox(tr, vec3(1.0), 0.1),
-//        vec3(0.5),
-//        0.0
-//    );
 
-    // Test box 3
+    // Test box 2
     tr = pos;
     tr = move(tr, vec3(0.0, 0.5, 0.0));
     tr = repeat(tr, vec3(15.0));
@@ -71,7 +63,7 @@ Obj map(const vec3 cam_pos) {
         sdRoundBox(tr, vec3(1.0), 0.0),
         vec3(0.0),
 //        abs(sin(c.time * 0.05))
-        0.6
+        1.0
     );
 
 
@@ -81,11 +73,17 @@ Obj map(const vec3 cam_pos) {
     vec3 color = objects[0].col;
     float reflect = objects[0].rel;
     for (int i = 1; i < NUM; i++) {
-        dist = opUnion(dist, objects[i].dist);
+        float us = 1.5;
 
-        color = vecOpUnion(dist, objects[i].dist, color, objects[i].col);
+        float backup = dist;
+//        dist = opUnion(backup, objects[i].dist);
+        dist = opSmoothUnion(backup, objects[i].dist, us);
 
-        reflect = floatOpUnion(dist, objects[i].dist, reflect, objects[i].rel);
+//        color = vecOpUnion(backup, objects[i].dist, color, objects[i].col);
+        color = vecSmoothUnion(backup, objects[i].dist, color, objects[i].col, us);
+
+//        reflect = floatOpUnion(backup, objects[i].dist, reflect, objects[i].rel);
+        reflect = floatSmoothUnion(backup, objects[i].dist, reflect, objects[i].rel, us);
     }
 
 
